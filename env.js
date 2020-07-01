@@ -1,3 +1,5 @@
+const reservedKeywords = require('./reservedKeywords')
+
 class Env {
   constructor (env = {}, outer = null) {
     this.env = env
@@ -19,6 +21,12 @@ class Env {
   }
 
   set (v, w) {
+    if (reservedKeywords.includes(v)) {
+      throw new Error(
+        v +
+          ' is a reserved keyword, and cannot be used as an argument/definiton name.'
+      )
+    }
     this.env[v] = w
   }
 }

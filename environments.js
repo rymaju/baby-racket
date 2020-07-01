@@ -63,13 +63,21 @@ const STANDARD_ENV = new Env({
     return args
   },
   cons: (first, rest) => {
-    return [first, ...rest]
+    if (rest instanceof Array) {
+      return [first, ...rest]
+    }
+    return [first, '.', rest]
   },
   car: list => {
     return list[0]
   },
   cdr: list => {
-    return list.slice(1)
+    const rest = list.slice(1)
+    //check if it is a proper list or a pairing
+    if (rest.length == 2 && rest[0] === '.') {
+      return rest[1]
+    }
+    return rest
   },
   first: list => {
     return list[0]
@@ -87,11 +95,12 @@ const STANDARD_ENV = new Env({
     return list instanceof Array && list.length > 0
   },
   'null?': list => {
-    return list === []
+    return list instanceof Array && list.length === 0
   },
   'empty?': list => {
-    return list === []
+    return list instanceof Array && list.length === 0
   },
+  length: l => l.length,
   append: (...args) => {
     let ret = []
     for (list of args) {
@@ -100,7 +109,8 @@ const STANDARD_ENV = new Env({
     return ret
   },
   and: (a, b) => {
-    return a && b
+    if (a === false || b === false) return false
+    return b
   },
   or: (a, b) => {
     return a || b
@@ -143,7 +153,17 @@ const STANDARD_ENV = new Env({
   'symbol=?': (x, y) => x === y,
   'symbol?': x => typeof x === 'string' && x.split(' ').length === 1,
   assoc: (x, l) => {
-    for (pair of l) {
+    for (let i = 0; i < l.length; i++) {
+      let pair = l[i]
+      if (pair[0] == x) {
+        return pair
+      }
+    }
+    return false
+  },
+  assv: (x, l) => {
+    for (let i = 0; i < l.length; i++) {
+      let pair = l[i]
       if (pair[0] === x) {
         return pair
       }

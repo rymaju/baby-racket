@@ -10,11 +10,11 @@ const STANDARD_ENV = require('./environments').STANDARD_ENV
  * breaks the string into tokens
  * @param {String} rawInput
  */
-function tokenize (rawInput) {
+function tokenize(rawInput) {
   //makes a tree of tokens
   // if youre a value, then youre on this level of the tree
   // if youre a (, then you mark the start of a new level, so recursively call treeify
-  console.log(rawInput)
+  // console.log(rawInput)
   const splitInput = rawInput
     .replace(/\[/g, '(')
     .replace(/\]/g, ')')
@@ -26,7 +26,7 @@ function tokenize (rawInput) {
     .split(' ')
     .filter(v => v !== '')
 
-  console.log(splitInput)
+  //console.log(splitInput)
   const tokenTree = treeify(splitInput)
   return tokenTree
 }
@@ -35,7 +35,7 @@ function tokenize (rawInput) {
  *
  * @param {Array} tokens
  */
-function treeify (tokens) {
+function treeify(tokens) {
   //console.log(tokens)
 
   const token = tokens.shift()
@@ -79,7 +79,7 @@ function treeify (tokens) {
   }
 }
 
-function eval (root, env) {
+function eval(root, env) {
   if (typeof root === 'string') {
     const frame = env.find(root)
     if (frame === undefined) {
@@ -159,11 +159,14 @@ function eval (root, env) {
     const proc = eval(root[0], env)
     const args = root.slice(1).map(arg => eval(arg, env))
 
+    if (!(proc instanceof Function)) {
+      throw new TypeError(root[0] + ':' + proc + ' isnt a function.')
+    }
     return proc(...args)
   }
 }
 
-function makeLambda (params, exp, env) {
+function makeLambda(params, exp, env) {
   return (...args) => {
     let newFrame = {}
     for (let i = 0; i < args.length; i++) {
@@ -178,12 +181,35 @@ function makeLambda (params, exp, env) {
  * @param {*} exp
  * @param {*} env
  */
-function evaluate (exp, env) {
+function evaluate(exp, env) {
   return eval(tokenize(exp), env)
 }
 
-function evaluate (exp) {
+function evaluate(exp) {
   return eval(tokenize(exp), STANDARD_ENV)
+}
+
+function prettify(exp) {
+  return prettify(exp, true)
+}
+
+function prettify(exp, firstCall) {
+  if (exp instanceof Array) {
+    return (
+      (firstCall ? "'" : '') +
+      '(' +
+      exp.map(e => prettify(e, false)).join(' ') +
+      ')'
+    )
+  } else if (exp instanceof Function) {
+    return '#<procedure>'
+  } else if (exp === true) {
+    return '#t'
+  } else if (exp === false) {
+    return '#f'
+  } else {
+    return exp
+  }
 }
 
 // console.log(tokenize('(1 2 3 (4 5 (6 7)))'))
@@ -214,7 +240,7 @@ function evaluate (exp) {
 
 // runREPL()
 
-function unquote (root, env) {
+function unquote(root, env) {
   if (root instanceof Array) {
     if (root[0] === 'unquote') {
       return eval(root[1], env)
@@ -224,4 +250,8 @@ function unquote (root, env) {
   return root
 }
 
-module.exports = evaluate
+module.exports = {
+  prettyEvaluate: x => prettify(evaluate(x)),
+  evaluate,
+  prettify
+}

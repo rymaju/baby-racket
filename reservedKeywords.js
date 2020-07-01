@@ -1,4 +1,4 @@
-// eventually will be used to restrict var names in define and let
+// used to restrict var names in define and let
 module.exports = [
   'else',
   'lambda',
@@ -8,5 +8,7 @@ module.exports = [
   'true',
   'false',
   '#f',
-  '#t'
+  '#t',
+  '.',
+  'vector'
 ]
