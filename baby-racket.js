@@ -2,7 +2,6 @@
 // Ryan Jung : June 30th, 2020
 // mini-racket: a mini Racket implementation in Javascript
 
-//TODO: add clean tokens a bit better, get rid of whitespace characters like \t and \n
 const Env = require('./env')
 const STANDARD_ENV = require('./environments').STANDARD_ENV
 let testCount = 0
