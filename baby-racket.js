@@ -2,15 +2,16 @@
 // Ryan Jung : June 30th, 2020
 // mini-racket: a mini Racket implementation in Javascript
 
-const { parse } = require('path')
+//TODO: add clean tokens a bit better, get rid of whitespace characters like \t and \n
 const Env = require('./env')
 const STANDARD_ENV = require('./environments').STANDARD_ENV
+let testCount = 0
 
 /**
  * breaks the string into tokens
  * @param {String} rawInput
  */
-function tokenize(rawInput) {
+function tokenize (rawInput) {
   //makes a tree of tokens
   // if youre a value, then youre on this level of the tree
   // if youre a (, then you mark the start of a new level, so recursively call treeify
@@ -35,7 +36,7 @@ function tokenize(rawInput) {
  *
  * @param {Array} tokens
  */
-function treeify(tokens) {
+function treeify (tokens) {
   //console.log(tokens)
 
   const token = tokens.shift()
@@ -79,7 +80,7 @@ function treeify(tokens) {
   }
 }
 
-function eval(root, env) {
+function eval (root, env) {
   if (typeof root === 'string') {
     const frame = env.find(root)
     if (frame === undefined) {
@@ -140,6 +141,21 @@ function eval(root, env) {
     } else {
       return eval(branch2, env)
     }
+  } else if (root[0] === 'check-equal?') {
+    const actual = root[1]
+    const expected = root[2]
+    const actualVal = eval(actual, env)
+    const exptVal = eval(expected, env)
+    testCount++
+    if (actualVal === exptVal) {
+      return undefined
+    } else {
+      throw new Error(
+        `Test ${testCount} Failed\nat (check-equal? ${prettify(
+          actual
+        )} ${prettify(expected)})\nactual: ${actualVal}\nexpected: ${exptVal} `
+      )
+    }
   } else if (root[0] === 'define') {
     const symbol = root[1]
     const exp = root[2]
@@ -166,7 +182,7 @@ function eval(root, env) {
   }
 }
 
-function makeLambda(params, exp, env) {
+function makeLambda (params, exp, env) {
   return (...args) => {
     let newFrame = {}
     for (let i = 0; i < args.length; i++) {
@@ -176,24 +192,21 @@ function makeLambda(params, exp, env) {
   }
 }
 
-/**
- *
- * @param {*} exp
- * @param {*} env
- */
-function evaluate(exp, env) {
+function evaluate (exp, env) {
+  testCount = 0
   return eval(tokenize(exp), env)
 }
 
-function evaluate(exp) {
+function evaluate (exp) {
+  testCount = 0
   return eval(tokenize(exp), STANDARD_ENV)
 }
 
-function prettify(exp) {
+function prettify (exp) {
   return prettify(exp, true)
 }
 
-function prettify(exp, firstCall) {
+function prettify (exp, firstCall) {
   if (exp instanceof Array) {
     return (
       (firstCall ? "'" : '') +
@@ -240,7 +253,9 @@ function prettify(exp, firstCall) {
 
 // runREPL()
 
-function unquote(root, env) {
+
+
+function unquote (root, env) {
   if (root instanceof Array) {
     if (root[0] === 'unquote') {
       return eval(root[1], env)
