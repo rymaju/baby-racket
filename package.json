@@ -3,9 +3,6 @@
   "version": "1.0.3",
   "description": "An ugly, slow, and contract violating mini Racket/Scheme/LISP interpreter",
   "main": "baby-racket.js",
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com/"
-  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

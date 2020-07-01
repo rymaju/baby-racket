@@ -142,18 +142,16 @@ function eval (root, env) {
       return eval(branch2, env)
     }
   } else if (root[0] === 'check-equal?') {
-    const actual = root[1]
-    const expected = root[2]
-    const actualVal = eval(actual, env)
-    const exptVal = eval(expected, env)
+    const actual = prettify(root[1])
+    const expected = prettify(root[2])
+    const actualVal = prettify(eval(root[1], env))
+    const exptVal = prettify(eval(root[2], env))
     testCount++
     if (actualVal === exptVal) {
       return undefined
     } else {
       throw new Error(
-        `Test ${testCount} Failed\nat (check-equal? ${prettify(
-          actual
-        )} ${prettify(expected)})\nactual: ${actualVal}\nexpected: ${exptVal} `
+        `Test ${testCount} Failed\nat (check-equal? ${actual} ${expected})\nactual:   ${actualVal}\nexpected: ${exptVal} `
       )
     }
   } else if (root[0] === 'define') {
@@ -252,8 +250,6 @@ function prettify (exp, firstCall) {
 // }
 
 // runREPL()
-
-
 
 function unquote (root, env) {
   if (root instanceof Array) {
