@@ -194,7 +194,9 @@ const STANDARD_ENV = new Env({
   ormap: (f, l) => l.any(f),
   foldl: (f, init, l) => l.reduce(f, init),
   foldr: (f, init, l) => l.reduceRight(f, init),
-  filter: (f, l) => l.filter(f)
+  filter: (f, l) => l.filter(f),
+  vector: x => ['vector', x],
+  'vector?': x => x instanceof Array && x[0] === 'vector'
 })
 
 module.exports = { STANDARD_ENV }
