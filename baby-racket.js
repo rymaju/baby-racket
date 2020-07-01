@@ -43,7 +43,7 @@ function treeify (tokens) {
     case '(':
       const list = []
 
-      while (tokens[0] != ')') {
+      while (tokens.length > 0 && tokens[0] != ')') {
         list.push(treeify(tokens))
       }
       tokens.shift()
@@ -195,24 +195,24 @@ function evaluate (exp) {
 // console.log(evaluate('(list (define x 1) x)'))
 // console.log(evaluate('(list (define x (define x 4)) x)'))
 // console.log(evaluate('(list (define (x a b c) (+ a b c)) (x 1 2 3))'))
+//console.log(tokenize('`(1 2 3 ,x . ,y)'))
 
-function runREPL () {
-  const readline = require('readline').createInterface({
-    input: process.stdin,
-    output: process.stdout
-  })
-  let env = STANDARD_ENV
-  let loop = env => {
-    readline.question('> ', answer => {
-      console.log(evaluate(answer, env))
-      loop(env)
-    })
-  }
-  loop(env)
-}
+// function runREPL () {
+//   const readline = require('readline').createInterface({
+//     input: process.stdin,
+//     output: process.stdout
+//   })
+//   let env = STANDARD_ENV
+//   let loop = env => {
+//     readline.question('> ', answer => {
+//       console.log(evaluate(answer, env))
+//       loop(env)
+//     })
+//   }
+//   loop(env)
+// }
 
-console.log(tokenize('`(1 2 3 ,x . ,y)'))
-//runREPL()
+// runREPL()
 
 function unquote (root, env) {
   if (root instanceof Array) {
