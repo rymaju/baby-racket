@@ -1,6 +1,6 @@
 [![npm version](https://badge.fury.io/js/baby-racket.svg)](https://badge.fury.io/js/baby-racket)
 
-# baby-racket
+# [baby-racket](https://github.com/rymaju/baby-racket)
 
 A subset of Racket created entirely in Javascript without external dependencies. The goal of this project is to create a suitable substitute language for Racket's Student Languages and the Scheme used in The Reasoned Schemer Second Edition.
 
