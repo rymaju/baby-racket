@@ -17,6 +17,9 @@ function tokenize (rawInput) {
   // if youre a (, then you mark the start of a new level, so recursively call treeify
   // console.log(rawInput)
   const splitInput = rawInput
+    .replace(/\n/g, ' ')
+    .replace(/\t/g, ' ')
+    .replace(/\r/g, ' ')
     .replace(/\[/g, '(')
     .replace(/\]/g, ')')
     .replace(/\(/g, ' ( ')
@@ -32,10 +35,6 @@ function tokenize (rawInput) {
   return tokenTree
 }
 
-/**
- *
- * @param {Array} tokens
- */
 function treeify (tokens) {
   //console.log(tokens)
 
