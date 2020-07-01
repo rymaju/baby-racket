@@ -1,0 +1,16 @@
+{
+  "name": "baby-racket",
+  "version": "1.0.0",
+  "description": "An ugly, slow, and contract violating mini Racket/Scheme/LISP interpreter",
+  "main": "baby-racket.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": {
+    "name": "Ryan Jung",
+    "email": "ryan.matthew.jung@gmail.com",
+    "url": "https://ryanjung.dev"
+  },
+  "license": "ISC",
+  "keywords": ["Racket", "Scheme", "LISP", "functional", "language"]
+}
