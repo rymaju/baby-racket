@@ -10,5 +10,8 @@ module.exports = [
   '#f',
   '#t',
   '.',
-  'vector'
+  '#',
+  '`',
+  "'",
+  'vector',
 ]

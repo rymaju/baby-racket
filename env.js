@@ -29,6 +29,11 @@ class Env {
     }
     this.env[v] = w
   }
+  clone() {
+    let clonedOuter = this.outer !== null ? this.outer.clone() : null;
+
+    return new Env(Object.assign({}, this.env), clonedOuter)
+  }
 }
 
 module.exports = Env

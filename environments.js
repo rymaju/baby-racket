@@ -1,6 +1,10 @@
 const Env = require('./env')
+const Vector = require('./vector')
 
 const STANDARD_ENV = new Env({
+  'string->symbol': x => {
+    return x.toString()
+  },
   sub1: n => {
     return n - 1
   },
@@ -132,7 +136,7 @@ const STANDARD_ENV = new Env({
   min: Math.min,
   modulo: (a, b) => a % b,
   'negative?': x => x < 0,
-  'number->string': x => x + '',
+  'number->string': x => new String(x),
   'number?': x => !isNaN(x),
   'odd?': x => x % 2 === 1,
   pi: Math.PI,
@@ -145,13 +149,12 @@ const STANDARD_ENV = new Env({
   sqr: x => Math.pow(x, 2),
   sqrt: Math.sqrt,
   tan: Math.tan,
-  'boolean->string': x => x + '',
   'boolean=?': (a, b) => a === b,
   'boolean?': x => x === true || x === false,
   'false?': x => x === false,
   'symbol->string': x => x,
   'symbol=?': (x, y) => x === y,
-  'symbol?': x => typeof x === 'string' && x.split(' ').length === 1,
+  'symbol?': x => typeof x === 'string' && !(x instanceof String),
   assoc: (x, l) => {
     for (let i = 0; i < l.length; i++) {
       let pair = l[i]
@@ -202,12 +205,26 @@ const STANDARD_ENV = new Env({
   reverse: l => reverse(l),
   explode: s => s.explode(),
   'string->number': x => Number(x),
-  'string-append': (...args) => args.join(''),
+  'string-append': (...args) => {
+    let out = ''
+    for (element of args) {
+      if (!(element instanceof String))
+        throw new TypeError(element + ' is not a String')
+      out += element
+    }
+    return new String(out)
+  },
   'string=?': (a, b) => a === b,
   'string?': x => typeof x === 'string',
   substring: (s, i, j) => s.substring(i, j),
   'equal?': (a, b) => a === b,
-  'eqv?': (a, b) => a === b,
+  'eqv?': (a, b) => {
+    if(a instanceof Array && b instanceof Array && a.length === 0 && a.length === b.length) {
+      return true;
+    }
+
+    return a === b
+  },
   identity: x => x,
   map: (f, l) => l.map(f),
   andmap: (f, l) => l.every(f),
@@ -215,8 +232,9 @@ const STANDARD_ENV = new Env({
   foldl: (f, init, l) => l.reduce(f, init),
   foldr: (f, init, l) => l.reduceRight(f, init),
   filter: (f, l) => l.filter(f),
-  vector: x => ['vector', x],
-  'vector?': x => x instanceof Array && x[0] === 'vector'
+  vector: (...args) => new Vector(args),
+  'vector?': x => x instanceof Vector,
+  'list->vector': l => new Vector(l)
 })
 
 module.exports = { STANDARD_ENV }

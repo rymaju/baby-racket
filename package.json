@@ -1,6 +1,6 @@
 {
   "name": "baby-racket",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "An ugly, slow, and contract violating mini Racket/Scheme/LISP interpreter",
   "main": "baby-racket.js",
   "scripts": {

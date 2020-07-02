@@ -1,10 +1,11 @@
 // Heavily inspired by https://norvig.com/lispy.html
 // Ryan Jung : June 30th, 2020
 // mini-racket: a mini Racket implementation in Javascript
-
+const Vector = require('./vector')
 const Env = require('./env')
-const STANDARD_ENV = require('./environments').STANDARD_ENV
+let STANDARD_ENV = require('./environments').STANDARD_ENV
 let testCount = 0
+let kanren = true
 
 /**
  * breaks the string into tokens
@@ -19,6 +20,7 @@ function tokenize (rawInput) {
     .replace(/\n/g, ' ')
     .replace(/\t/g, ' ')
     .replace(/\r/g, ' ')
+    .replace(/\"/g, ' " ')
     .replace(/\[/g, '(')
     .replace(/\]/g, ')')
     .replace(/\(/g, ' ( ')
@@ -29,13 +31,17 @@ function tokenize (rawInput) {
     .split(' ')
     .filter(v => v !== '')
 
-  //console.log(splitInput)
+  // console.log(splitInput)
   const tokenTree = treeify(splitInput)
+  // console.log(tokenTree)
   return tokenTree
 }
 
 function treeify (tokens) {
   //console.log(tokens)
+  if (tokens.length == 0) {
+    return undefined
+  }
 
   const token = tokens.shift()
   switch (token) {
@@ -49,6 +55,21 @@ function treeify (tokens) {
       return list
     case ')':
       throw new Error('Unexpected end of file.')
+    case '"':
+      const words = []
+
+      while (tokens.length > 0 && tokens[0] != '"') {
+        words.push(tokens[0])
+        tokens.shift()
+      }
+      tokens.shift()
+      //console.log('runs')
+      return new String(words.join(' '))
+    case '#':
+      let vector = []
+      vector.push('vector')
+      vector = vector.concat(treeify(tokens))
+      return vector
     case "'":
       let quote = []
       quote.push('quote')
@@ -64,6 +85,7 @@ function treeify (tokens) {
       unquote.push('unquote')
       unquote.push(treeify(tokens))
       return unquote
+
     default:
       if (!isNaN(token)) {
         //its a number
@@ -79,6 +101,14 @@ function treeify (tokens) {
 }
 
 function eval (root, env) {
+  //console.log(root)
+  if (env === undefined || !(env instanceof Env)) {
+    console.log(env)
+    throw new Error('environment was not defined!')
+  }
+  //console.log(root)
+
+  //console.log(root instanceof String)
   if (typeof root === 'string') {
     const frame = env.find(root)
     if (frame === undefined) {
@@ -96,8 +126,8 @@ function eval (root, env) {
     //
     for (let i = 1; i < root.length; i++) {
       const branch = root[i]
-      // should only pass if it is stricly true
-      if (branch[0] === 'else' || eval(branch[0], env) === true) {
+      // should only pass if it is not false
+      if (branch[0] === 'else' || eval(branch[0], env) !== false) {
         return eval(branch[1], env)
       }
     }
@@ -140,11 +170,19 @@ function eval (root, env) {
       return eval(branch2, env)
     }
   } else if (root[0] === 'check-equal?') {
+    testCount++
     const actual = prettify(root[1])
     const expected = prettify(root[2])
-    const actualVal = prettify(eval(root[1], env))
-    const exptVal = prettify(eval(root[2], env))
-    testCount++
+    let actualVal
+    let exptVal
+    try {
+      actualVal = prettify(eval(root[1], env))
+      exptVal = prettify(eval(root[2], env))
+    } catch (err) {
+      throw new Error(
+        `Test ${testCount} Failed\nat (check-equal? ${actual} ${expected})\nactual:   ${actualVal}\nexpected: ${exptVal} `
+      )
+    }
     if (actualVal === exptVal) {
       return undefined
     } else {
@@ -167,7 +205,125 @@ function eval (root, env) {
     const params = root[1]
     const exp = root[2]
     return makeLambda(params, exp, env)
-  } else {
+  }
+  //------------------MINIKANREN---------------------
+  else if (root[0] == 'disj') {
+    if (root.length == 1) {
+      return eval('#u', env)
+    } else if (root.length == 2) {
+      return eval(root[1], env)
+    } else {
+      return eval(
+        ['disj2', root[1], eval(['disj', ...root.slice(2)], env)],
+        env
+      )
+    }
+  } else if (kanren && root[0] == 'conj') {
+    if (root.length == 1) {
+      return eval(['==', true, true], env)
+    } else if (root.length == 2) {
+      return eval(root[1], env)
+    } else {
+      return eval(
+        ['conj2', root[1], eval(['conj', ...root.slice(2)], env)],
+        env
+      )
+    }
+  } else if (kanren && root[0] == 'defrel') {
+    const params = root[1]
+    const goals = root.slice(2)
+    eval(
+      [
+        'define',
+        params,
+        ['lambda', ['s'], ['lambda', [], [['conj', ...goals], 's']]]
+      ],
+      env
+    )
+  } else if (kanren && root[0] == 'run') {
+    const n = root[1]
+    const query = root[2]
+    const goals = root.slice(3)
+
+    console.log('root: ' + root)
+    console.log(goals)
+
+    if (query instanceof Array) {
+      console.log(query)
+      console.log(query.includes('_q'))
+      if (query.includes('_q')) {
+        throw new Error(
+          '_q is a protected query name! Please pick another name.'
+        )
+      }
+
+      let quotedQuery = ['quasiquote', query.map(v => ['unquote', v])]
+      console.log(
+        prettify([
+          'run',
+          n,
+          '_q',
+          ['fresh', query, ['==', '_q', quotedQuery]],
+          ...goals
+        ])
+      )
+      return eval(
+        ['run', n, '_q', ['fresh', query, ['==', '_q', quotedQuery], ...goals]],
+        env
+      )
+    } else {
+      return eval(
+        [
+          'let',
+          [[query, ['var', ['quote', query]]]],
+          ['map', ['reify', query], ['run-goal', n, ['conj', ...goals]]]
+        ],
+        env
+      )
+    }
+  } else if (kanren && root[0] == 'run*') {
+    return eval(['run', false, root[1], ...root.slice(2)], env)
+  } else if (kanren && root[0] == 'fresh') {
+    const freshVars = root[1]
+    const goals = root.slice(2)
+    const freshFrame = {}
+
+    for (let x of freshVars) {
+      freshFrame[x] = eval(['var', x], env)
+    }
+    return eval(['conj', ...goals], new Env(freshFrame, env))
+  } else if (kanren && root[0] == 'conde') {
+    const cond = ['disj']
+    for (let i = 1; i < root.length; i++) {
+      cond.push(['conj', ...root[i]])
+    }
+    return eval(cond, env)
+  } else if (kanren && root[0] == 'conda') {
+    const goals = root[1]
+    if (root.length == 2) {
+      return eval(['conj', ...goals], env)
+    } else {
+      const g0 = goals[0]
+      const ln = root[3]
+      const rest = root.slice(4)
+      return eval(
+        ['ifte', g0, ['conj', ...goals.slice(1)], ['conda', ln, ...rest]],
+        env
+      )
+    }
+  } else if (kanren && root[0] == 'condu') {
+    const goals = root[1]
+    return eval(
+      ['conda', [['once', goals[0]], ...goals.slice(1)], ...root.slice(2)],
+      env
+    )
+  } else if (kanren && root[0] == '#s') {
+    return eval(['==', true, true], env)
+  } else if (kanren && root[0] == '#u') {
+    return eval(['==', true, false], env)
+  }
+  //----------------------END---------------------
+  else {
     const proc = eval(root[0], env)
     const args = root.slice(1).map(arg => eval(arg, env))
 
@@ -188,22 +344,29 @@ function makeLambda (params, exp, env) {
   }
 }
 
-function evaluate (exp, env) {
+function evaluate (exp, options = {}) {
   testCount = 0
-  return eval(tokenize(exp), env)
-}
 
-function evaluate (exp) {
-  testCount = 0
-  return eval(tokenize(exp), STANDARD_ENV)
+  let env = options.env ||  STANDARD_ENV.clone()
+  console.log(options)
+  kanren = options.kanren ? true : false
+  console.log(kanren)
+
+  if (kanren) {
+    eval(tokenize('(list ' + require('./minikanren') + ')'), env)
+  }
+
+  return eval(tokenize(exp), env)
 }
 
 function prettify (exp) {
   return prettify(exp, true)
 }
 
-function prettify (exp, firstCall) {
-  if (exp instanceof Array) {
+function prettify (exp, firstCall = true) {
+  if (exp == undefined) {
+    return ''
+  } else if (exp instanceof Array) {
     return (
       (firstCall ? "'" : '') +
       '(' +
@@ -212,42 +375,20 @@ function prettify (exp, firstCall) {
     )
   } else if (exp instanceof Function) {
     return '#<procedure>'
+  } else if (exp instanceof Vector) {
+    return (firstCall ? "'" : '') + '#' + prettify(exp.list, false)
   } else if (exp === true) {
     return '#t'
   } else if (exp === false) {
     return '#f'
+  } else if (exp instanceof String) {
+    return `"${exp.toString()}"`
+  } else if (typeof exp === 'string') {
+    return (firstCall ? "'" : '') + exp
   } else {
     return exp
   }
 }
-
-// console.log(tokenize('(1 2 3 (4 5 (6 7)))'))
-// console.log(tokenize('(+ 1 2 (+ 6 5) 2)'))
-// console.log(evaluate('(+ 1 2 (+ 6 5) 2)'))
-// console.log(evaluate('((lambda (x) x) 1)'))
-// console.log(evaluate('((lambda (x) (+ x ((lambda (x) x) 2))) 5)'))
-// console.log(evaluate('((lambda (x) x) (+ 1 1))'))
-// console.log(evaluate('(list (define x 1) x)'))
-// console.log(evaluate('(list (define x (define x 4)) x)'))
-// console.log(evaluate('(list (define (x a b c) (+ a b c)) (x 1 2 3))'))
-//console.log(tokenize('`(1 2 3 ,x . ,y)'))
-
-// function runREPL () {
-//   const readline = require('readline').createInterface({
-//     input: process.stdin,
-//     output: process.stdout
-//   })
-//   let env = STANDARD_ENV
-//   let loop = env => {
-//     readline.question('> ', answer => {
-//       console.log(evaluate(answer, env))
-//       loop(env)
-//     })
-//   }
-//   loop(env)
-// }
-
-// runREPL()
 
 function unquote (root, env) {
   if (root instanceof Array) {
@@ -260,7 +401,8 @@ function unquote (root, env) {
 }
 
 module.exports = {
-  prettyEvaluate: x => prettify(evaluate(x)),
+  prettyEvaluate: (...args) => prettify(evaluate(...args)),
   evaluate,
-  prettify
+  prettify,
+  STANDARD_ENV
 }
