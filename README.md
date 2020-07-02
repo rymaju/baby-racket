@@ -4,7 +4,9 @@
 
 A subset of Racket created entirely in Javascript without external dependencies. The goal of this project is to create a suitable substitute language for Racket's Student Languages and the Scheme used in The Reasoned Schemer Second Edition.
 
-[**Link to In-Browser IDE**](https://baby-racket.netlify.app)
+Minikanren includes the functionality of my other project: [mykanren](https://github.com/rymaju/mykanren)
+
+## [**Link to In-Browser IDE**](https://baby-racket.netlify.app)
 
 ```
 import {prettyEvaluate, evaluate, prettify, STANDARD_ENV} from 'baby-racket';
