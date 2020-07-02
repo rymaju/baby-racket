@@ -7,10 +7,14 @@ A subset of Racket created entirely in Javascript without external dependencies.
 [**Link to In-Browser IDE**](https://baby-racket.netlify.app)
 
 ```
-import {prettyEvaluate, evaluate, prettify} from 'baby-racket';
+import {prettyEvaluate, evaluate, prettify, STANDARD_ENV} from 'baby-racket';
 
 prettyEvaluate("'((+ 1 1) (* 4 4))") // -> '(2 16)
 
 evaluate("'((+ 1 1) (\* 4 4))") // -> [2, 16]
 prettify(evaluate("'((+ 1 1) (\* 4 4))")) // -> '(2 16) : equivalent to prettyEvaluate
+
+// with custom environment and minikanren mode on
+evaluate("'((+ 1 1) (\* 4 4))" , {env: STANDARD_ENV.clone(), kanren: true})
+
 ```
