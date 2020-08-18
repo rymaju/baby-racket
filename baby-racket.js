@@ -199,7 +199,7 @@ function evalExpr (root, env) {
   } else if (root[0] === 'lambda') {
     const params = root[1]
     const exp = root[2]
-    return params, exp, env
+    return makeLambda(params, exp, env)
   } else if (root[0] === 'define-struct') {
     const name = root[1]
     const fields = root[2]
