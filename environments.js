@@ -1,5 +1,6 @@
 const Env = require('./env')
 const Vector = require('./vector')
+const looseEquals = require('./equality')
 
 const STANDARD_ENV = new Env({
   'string->symbol': x => {
@@ -16,7 +17,7 @@ const STANDARD_ENV = new Env({
   },
   '+': (...args) => {
     let sum = 0
-    for (item of args) {
+    for (const item of args) {
       sum += item
     }
     return sum
@@ -30,7 +31,7 @@ const STANDARD_ENV = new Env({
   },
   '*': (...args) => {
     let product = 1
-    for (item of args) {
+    for (const item of args) {
       product *= item
     }
     return product
@@ -38,6 +39,9 @@ const STANDARD_ENV = new Env({
   '/': (...args) => {
     let quotient = args[0]
     for (let i = 1; i < args.length; i++) {
+      if (args[i] === 0) {
+        throw Error('Division by 0 is not allowed.')
+      }
       quotient /= args[i]
     }
     return quotient
@@ -67,18 +71,15 @@ const STANDARD_ENV = new Env({
     return args
   },
   cons: (first, rest) => {
-    if (rest instanceof Array) {
-      return [first, ...rest]
-    }
-    return [first, '.', rest]
+    return [first, ...rest]
   },
   car: list => {
     return list[0]
   },
   cdr: list => {
     const rest = list.slice(1)
-    //check if it is a proper list or a pairing
-    if (rest.length == 2 && rest[0] === '.') {
+    // check if it is a proper list or a pairing
+    if (rest.length === 2 && rest[0] === '.') {
       return rest[1]
     }
     return rest
@@ -89,6 +90,7 @@ const STANDARD_ENV = new Env({
   rest: list => {
     return list.slice(1)
   },
+  empty: [],
   'list?': list => {
     return list instanceof Array
   },
@@ -107,7 +109,7 @@ const STANDARD_ENV = new Env({
   length: l => l.length,
   append: (...args) => {
     let ret = []
-    for (list of args) {
+    for (const list of args) {
       ret = ret.concat(list)
     }
     return ret
@@ -157,8 +159,8 @@ const STANDARD_ENV = new Env({
   'symbol?': x => typeof x === 'string' && !(x instanceof String),
   assoc: (x, l) => {
     for (let i = 0; i < l.length; i++) {
-      let pair = l[i]
-      if (pair[0] == x) {
+      const pair = l[i]
+      if (looseEquals(pair[0], x)) {
         return pair
       }
     }
@@ -166,7 +168,7 @@ const STANDARD_ENV = new Env({
   },
   assv: (x, l) => {
     for (let i = 0; i < l.length; i++) {
-      let pair = l[i]
+      const pair = l[i]
       if (pair[0] === x) {
         return pair
       }
@@ -174,7 +176,7 @@ const STANDARD_ENV = new Env({
     return false
   },
   assq: (x, l) => {
-    for (pair of l) {
+    for (const pair of l) {
       if (pair[0] === x) {
         return pair
       }
@@ -185,7 +187,7 @@ const STANDARD_ENV = new Env({
     return l[x]
   },
   'make-list': (n, x) => {
-    let ret = []
+    const ret = []
     for (let i = 0; i < n; i++) {
       ret.push(x)
     }
@@ -194,35 +196,32 @@ const STANDARD_ENV = new Env({
   member: (x, l) => l.includes(x),
   'member?': (x, l) => l.includes(x),
   remove: (x, l) => {
-    let ret = [].concat(l)
-    let idx = ret.indexOf(x)
+    const ret = [].concat(l)
+    const idx = ret.indexOf(x)
     if (idx >= 0) {
       return ret.splice(idx, 1)
     }
     return ret
   },
   'remove-all': (x, l) => l.filter(v => v !== x),
-  reverse: l => reverse(l),
+  reverse: l => l.reverse(),
   explode: s => s.explode(),
   'string->number': x => Number(x),
   'string-append': (...args) => {
     let out = ''
-    for (element of args) {
-      if (!(element instanceof String))
+    for (const element of args) {
+      if (!(element instanceof String)) {
         throw new TypeError(element + ' is not a String')
+      }
       out += element
     }
     return new String(out)
   },
-  'string=?': (a, b) => a === b,
+  'string=?': looseEquals,
   'string?': x => typeof x === 'string',
   substring: (s, i, j) => s.substring(i, j),
-  'equal?': (a, b) => a === b,
+  'equal?': looseEquals,
   'eqv?': (a, b) => {
-    if(a instanceof Array && b instanceof Array && a.length === 0 && a.length === b.length) {
-      return true;
-    }
-
     return a === b
   },
   identity: x => x,

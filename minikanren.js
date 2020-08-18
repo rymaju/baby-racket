@@ -1,3 +1,6 @@
+// minikanren is no longer supported by baby-racket as of version 2.0.0
+// in the future I intend to come back and implement minikanren in baby-racket with some modifications
+
 module.exports = `
 
 (define (var? x) (vector? x))
@@ -213,4 +216,4 @@ module.exports = `
            (appendo d t res))]))
 
 `
-//(run 5 (q w e) (appendo q w e))
+// (run 5 (q w e) (appendo q w e))

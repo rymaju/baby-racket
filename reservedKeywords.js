@@ -2,7 +2,6 @@
 module.exports = [
   'else',
   'lambda',
-  'define',
   'let',
   'cond',
   'true',
@@ -13,5 +12,5 @@ module.exports = [
   '#',
   '`',
   "'",
-  'vector',
+  'vector'
 ]
