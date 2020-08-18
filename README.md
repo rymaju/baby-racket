@@ -16,12 +16,14 @@ Currently implemented:
 - Lambdas
 - Local definitions
 - Conditional branching (cond, if)
-- check-expect
+- check-expect / check-equal?
 
 
 ## [**Link to In-Browser IDE**](https://baby-racket.netlify.app)
 
-NOTE: this project no longer supports the "mykanren" implementation of minikanren as of version 2.0.0
+NOTE: 
+- this project no longer supports the "mykanren" implementation of minikanren as of version 2.0.0
+- check-expect actually functions more like check-equal? and both refer to the same function under the hood
 
 ```
 import {prettyEvaluate, evaluate, prettify, STANDARD_ENV} from 'baby-racket';

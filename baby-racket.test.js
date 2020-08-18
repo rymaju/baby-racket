@@ -1,4 +1,4 @@
-const { evaluate, STANDARD_ENV } = require('./baby-racket')
+const { evaluate, STANDARD_ENV, evaluateFile } = require('./baby-racket')
 
 test('(+ 2 2) -> 4', () => {
   expect(evaluate('(+ 2 2)')).toBe(4)
@@ -25,4 +25,21 @@ test('local', () => {
   ).toBe('')
 
   expect(evaluate(`(x 5)`, { env })).toBe(17)
+})
+
+test('evaluateFile', () => {
+  let env = STANDARD_ENV.clone()
+  expect(
+    evaluateFile(
+      `(define fib
+                      (lambda (n)
+                          (if (< n 2)
+                              1
+                              (+ (fib (- n 1)) (fib (- n 2))))))
+                    
+        (fib 20)
+        (check-expect (fib 20) 10946)`,
+      { env }
+    )
+  ).toStrictEqual(['', 10946, ''])
 })

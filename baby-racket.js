@@ -158,7 +158,7 @@ function evalExpr (root, env) {
     } else {
       return evalExpr(branch2, env)
     }
-  } else if (root[0] === 'check-equal?') {
+  } else if (root[0] === 'check-equal?' || root[0] === 'check-expect') {
     testCount++
     const actual = prettify(root[1])
     const expected = prettify(root[2])
@@ -169,7 +169,7 @@ function evalExpr (root, env) {
       exptVal = prettify(evalExpr(root[2], env))
     } catch (err) {
       throw new Error(
-        `Test ${testCount} Failed\nat (check-equal? ${actual} ${expected})\nactual:   ${actualVal}\nexpected: ${exptVal} `
+        `Test ${testCount} Failed\nat (${root[0]} ${actual} ${expected})\nactual:   ${actualVal}\nexpected: ${exptVal} `
       )
     }
     if (actualVal === exptVal) {
@@ -327,9 +327,17 @@ function printCons (l) {
   return `(cons ${prettifyHelper(l[0], false)} ${printCons(l.slice(1))})`
 }
 
+function evaluateFile (file, options) {
+  const expressions = tokenize(`(${file})`)
+
+  let env = options.env || STANDARD_ENV.clone()
+  return expressions.map(e => prettify(evalExpr(e, env), options.expandCons))
+}
+
 module.exports = {
   evaluate: (exp, options = { env: STANDARD_ENV.clone() }) =>
-    prettify(evaluate(exp, options), !!options.expandCons),
+    prettify(evaluate(exp, options), options.expandCons),
   STANDARD_ENV,
-  Env
+  Env,
+  evaluateFile
 }
