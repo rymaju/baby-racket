@@ -1,6 +1,6 @@
 {
   "name": "baby-racket",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "An mini Racket/Scheme/LISP interpreter",
   "main": "baby-racket.js",
   "scripts": {
@@ -12,13 +12,7 @@
     "url": "https://ryanjung.dev"
   },
   "license": "ISC",
-  "keywords": [
-    "Racket",
-    "Scheme",
-    "LISP",
-    "functional",
-    "language"
-  ],
+  "keywords": ["Racket", "Scheme", "LISP", "functional", "language"],
   "devDependencies": {
     "jest": "^26.1.0"
   }
