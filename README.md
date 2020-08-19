@@ -25,6 +25,9 @@ NOTE:
 - this project no longer supports the "mykanren" implementation of minikanren as of version 2.0.0
 - check-expect actually functions more like check-equal? and both refer to the same function under the hood
 
+TODO:
+- Proper string parsing so " this string " doesnt get parsed as "this string". (see .split(' '))
+
 ```
 import {prettyEvaluate, evaluate, prettify, STANDARD_ENV} from 'baby-racket';
 
