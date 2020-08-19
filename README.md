@@ -43,6 +43,6 @@ evaluate("'((+ 1 1) (\* 4 4))" , {env: myEnv})
 
 // if you want to evaluate an entire file instead of a single expression, use evaluateFile
 // you will get an array of each expression in the file in order of appearance
-evaluateFile("(+ 1 1) (+ 1 1)") // -> [2, 2]
+evaluateFile("(+ 1 1) (+ 1 1)", {env: myEnv}) // -> [2, 2]
 
 ```
