@@ -18,6 +18,10 @@ function tokenize (rawInput) {
   // if youre a value, then youre on this level of the tree
   // if youre a (, then you mark the start of a new level, so recursively call treeify
   const splitInput = rawInput
+
+    // remove ; and #| comments 2.0.3
+    .replace(/(;[^\n\r]+?(?:[\n\r]|$))|((#\|)(.|[\r\n])*?(\|#))/g, '')
+
     .replace(/\n/g, ' ')
     .replace(/\t/g, ' ')
     .replace(/\r/g, ' ')
@@ -327,7 +331,8 @@ function printCons (l) {
   return `(cons ${prettifyHelper(l[0], false)} ${printCons(l.slice(1))})`
 }
 
-function evaluateFile (file, options) {
+function evaluateFile (file, options = {}) {
+  testCount = 0
   const expressions = tokenize(`(${file})`)
 
   let env = options.env || STANDARD_ENV.clone()

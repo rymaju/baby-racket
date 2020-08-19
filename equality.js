@@ -1,6 +1,4 @@
 function loose (a, b) {
-  console.log(a)
-
   if (a instanceof String && b instanceof String) {
     return a.valueOf() === b.valueOf()
   } else if (typeof a === 'object' && typeof b === 'object') {
